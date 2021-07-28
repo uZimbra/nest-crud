@@ -42,8 +42,14 @@ export class UsersService {
       : users;
   }
 
-  findOne(id: string) {
-    const user = this.userRepository.findOne({ id });
+  async findOne(id: string) {
+    const user = await this.userRepository.findOne({ id });
+
+    if (!user) {
+      throw new NotFoundException('User does not exists!');
+    }
+
+    delete user.password;
 
     return user;
   }
