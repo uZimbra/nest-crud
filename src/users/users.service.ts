@@ -1,6 +1,5 @@
 import { Injectable, UnprocessableEntityException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { hash } from 'bcryptjs';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -19,15 +18,10 @@ export class UsersService {
     });
 
     if (userExists) {
-      throw new UnprocessableEntityException('User already exists!');
+      throw new UnprocessableEntityException('Email address already in use!');
     }
 
-    const hashedPassword = await hash(createUserDto.password ?? '', 8);
-
-    const user = this.userRepository.create({
-      ...createUserDto,
-      password: hashedPassword,
-    });
+    const user = this.userRepository.create(createUserDto);
 
     await this.userRepository.save(user);
 
