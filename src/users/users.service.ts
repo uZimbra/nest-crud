@@ -30,10 +30,16 @@ export class UsersService {
     return user;
   }
 
-  findAll() {
-    const users = this.userRepository.find();
+  async findAll() {
+    const users = await this.userRepository.find();
 
-    return users;
+    return users.length
+      ? users.map((user) => {
+          delete user.password;
+
+          return user;
+        })
+      : users;
   }
 
   findOne(id: string) {
