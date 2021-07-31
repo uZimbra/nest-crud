@@ -1,11 +1,9 @@
 import {
-  ForbiddenException,
   Injectable,
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { compare } from 'bcryptjs';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -89,7 +87,19 @@ export class UsersService {
     return user;
   }
 
-  remove(id: string) {
-    return `This action removes a #${id} user`;
+  async remove(id: string) {
+    const user = await this.userRepository.findOne({ id });
+
+    if (!user) {
+      throw new NotFoundException('User does not exists!');
+    }
+
+    await this.userRepository.delete({ id });
+
+    return {
+      statusCode: 200,
+      message: 'User has ben deleted!',
+      status: 'Success!',
+    };
   }
 }
