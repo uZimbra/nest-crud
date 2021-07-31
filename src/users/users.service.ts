@@ -1,5 +1,11 @@
-import { Injectable, UnprocessableEntityException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+  UnprocessableEntityException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { compare } from 'bcryptjs';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -54,11 +60,36 @@ export class UsersService {
     return user;
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async update(id: string, updateUserDto: UpdateUserDto) {
+    if (updateUserDto.email) {
+      throw new UnprocessableEntityException("Email can't be changed!");
+    }
+
+    if (updateUserDto.password) {
+      throw new UnprocessableEntityException(
+        "Password can't be changed through this resource!",
+      );
+    }
+
+    const userExists = await this.userRepository.findOne({ id });
+
+    if (!userExists) {
+      throw new NotFoundException('User does not exists!');
+    }
+
+    const user = this.userRepository.create({
+      ...userExists,
+      ...updateUserDto,
+    });
+
+    await this.userRepository.update(id, user);
+
+    delete user.password;
+
+    return user;
   }
 
-  remove(id: number) {
+  remove(id: string) {
     return `This action removes a #${id} user`;
   }
 }
